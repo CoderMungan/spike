@@ -1,29 +1,45 @@
 name: Docs Link Check
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "docs/**"
-      - ".github/workflows/docs-link-check.yaml"
   pull_request:
     paths:
       - "docs/**"
-      - ".github/workflows/docs-link-check.yaml"
+      - "README.md"
+  push:
+    branches: [ main ]
+    paths:
+      - "docs/**"
+      - "README.md"
 
 jobs:
   lychee:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write      # if you want to create issues on broken links
     steps:
       - uses: actions/checkout@v4
-      - name: Cache lychee
+
+      - name: Restore lychee cache
         uses: actions/cache@v4
         with:
           path: .lycheecache
-          key: lychee-cache-${{ runner.os }}-${{ github.sha }}
-          restore-keys: |
-            lychee-cache-${{ runner.os }}-
-      - name: Link check
+          key: cache-lychee-${{ github.sha }}
+          restore-keys: cache-lychee-
+
+      - name: Link Checker
+        id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --cache --max-cache-age 1d --accept 200,206 --no-progress --base-url https://spike.ist ./docs
+          args: "--base . --cache --max-cache-age 1d docs README.md"
+          format: markdown
+          output: ./lychee/out.md
+          fail: false # if you want to fail the job on broken links, set to true
+
+      - name: Create Issue From File
+        if: steps.lychee.outputs.exit_code != 0
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "Lychee: Docs Link Report"
+          content-filepath: ./lychee/out.md
+          labels: "report, links"
