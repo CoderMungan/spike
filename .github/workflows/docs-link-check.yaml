@@ -5,9 +5,11 @@ on:
   push:
     paths:
       - "docs/**"
+      - ".github/workflows/docs-link-check.yaml"
   pull_request:
     paths:
       - "docs/**"
+      - ".github/workflows/docs-link-check.yaml"
 
 jobs:
   lychee:
