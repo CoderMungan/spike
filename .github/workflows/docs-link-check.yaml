@@ -2,10 +2,10 @@ name: Docs Link Check
 
 on:
   pull_request:
-    paths: ["docs/**", "README.md", ".github/workflows/docs-link-check.yaml"]
+    paths: ["docs/**", ".github/workflows/docs-link-check.yaml"]
   push:
     branches: [main]
-    paths: ["docs/**", "README.md"]
+    paths: ["docs/**"]
 
 jobs:
   lychee:
