@@ -5,6 +5,7 @@ on:
     paths:
       - "docs/**"
       - "README.md"
+      - ".github/workflows/docs-link-check.yaml"
   push:
     branches: [ main ]
     paths:
