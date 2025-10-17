@@ -2,22 +2,14 @@ name: Docs Link Check
 
 on:
   pull_request:
-    paths:
-      - "docs/**"
-      - "README.md"
-      - ".github/workflows/docs-link-check.yaml"
+    paths: ["docs/**", "README.md", ".github/workflows/docs-link-check.yaml"]
   push:
-    branches: [ main ]
-    paths:
-      - "docs/**"
-      - "README.md"
+    branches: [main]
+    paths: ["docs/**", "README.md"]
 
 jobs:
   lychee:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      issues: write      # if you want to create issues on broken links
     steps:
       - uses: actions/checkout@v4
 
@@ -32,15 +24,27 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          args: "--base . --cache --max-cache-age 1d docs README.md"
+          # Important: base-url + only web schemes
+          args: >-
+            --base-url https://spike.ist
+            --cache --max-cache-age 1d
+            --timeout 20 --max-retries 2 --retry-wait-time 2
+            --accept 200,206,403,429
+            docs README.md
           format: markdown
           output: ./lychee/out.md
-          fail: false # if you want to fail the job on broken links, set to true
+          fail: false
 
-      - name: Create Issue From File
-        if: steps.lychee.outputs.exit_code != 0
-        uses: peter-evans/create-issue-from-file@v5
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          title: "Lychee: Docs Link Report"
-          content-filepath: ./lychee/out.md
-          labels: "report, links"
+          name: lychee-report
+          path: ./lychee/out.md
+
+      # For PRs (Issues are closed)
+      - name: Comment on PR with report
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: ./lychee/out.md
