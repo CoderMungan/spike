@@ -24,7 +24,6 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with:
-          # Important: base-url + only web schemes
           args: >-
             --base-url https://spike.ist
             --cache --max-cache-age 1d
@@ -42,7 +41,6 @@ jobs:
           name: lychee-report
           path: ./lychee/out.md
 
-      # For PRs (Issues are closed)
       - name: Comment on PR with report
         if: ${{ github.event_name == 'pull_request' }}
         uses: marocchino/sticky-pull-request-comment@v2
